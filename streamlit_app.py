@@ -1,40 +1,65 @@
-import altair as alt
-import numpy as np
 import pandas as pd
+import requests
 import streamlit as st
 
-"""
-# Welcome to Streamlit!
+# Imposta le allocazioni di asset target
+asset_allocations = {
+    "azioni": 0.3,
+    "obbligazioni_lungo_termine": 0.4,
+    "obbligazioni_medio_termine": 0.15,
+    "materie_prime": 0.075,
+    "oro": 0.075,
+}
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+# Leggi il valore corrente di ciascun asset
+asset_values = pd.read_csv("asset_values.csv")
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+# Imposta la UI
+st.title("Portafoglio virtuale di Nancy Pelosi")
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+# Mostra le allocazioni di asset target
+st.write("Allocazioni di asset target:")
+for asset, allocation in asset_allocations.items():
+    st.write(f"{asset}: {allocation}")
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+# Mostra il valore corrente del portafoglio
+st.write("Valore corrente del portafoglio:")
+current_value = 0
+for asset, allocation in asset_allocations.items():
+    current_value += asset_values[asset].iloc[0] * allocation
+st.write(current_value)
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+# Mostra le operazioni di Nancy Pelosi
+st.write("Operazioni di Nancy Pelosi:")
+operations = requests.get("https://api.sec.gov/historical/daily-insider/2023/07/20/congress/insider-trades.json").json()
+for operation in operations:
+    st.write(f"{operation['name']} ha acquistato {operation['amount']} azioni di {operation['ticker']} il {operation['date']}")
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+# Aggiorna il portafoglio
+def update_portfolio():
+    for operation in operations:
+        asset = operation['ticker']
+        amount = operation['amount']
+        if operation['type'] == "buy":
+            asset_allocations[asset] += amount / current_value
+        elif operation['type'] == "sell":
+            asset_allocations[asset] -= amount / current_value
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+# Pulsante per aggiornare il portafoglio
+st.button("Aggiorna portafoglio")
+
+# Aggiorna il portafoglio solo se il pulsante viene premuto
+if st.button("Aggiorna portafoglio"):
+    update_portfolio()
+
+# Mostra le allocazioni di asset aggiornate
+st.write("Allocazioni di asset aggiornate:")
+for asset, allocation in asset_allocations.items():
+    st.write(f"{asset}: {allocation}")
+
+# Mostra il valore corrente del portafoglio aggiornato
+st.write("Valore corrente del portafoglio aggiornato:")
+current_value = 0
+for asset, allocation in asset_allocations.items():
+    current_value += asset_values[asset].iloc[0] * allocation
+st.write(current_value)
