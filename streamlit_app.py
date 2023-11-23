@@ -12,7 +12,7 @@ asset_allocations = {
 }
 
 # Leggi il valore corrente di ciascun asset
-asset_values = pd.read_csv("asset_values.csv")
+
 
 # Imposta la UI
 st.title("Portafoglio virtuale di Nancy Pelosi")
