@@ -1,3 +1,4 @@
+apt-get pip
 pip install requests
 # Define a function to fetch the current price of an asset symbol
 def get_asset_price(symbol):
