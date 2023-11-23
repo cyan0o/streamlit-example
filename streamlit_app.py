@@ -1,6 +1,18 @@
-import pandas as pd
-import requests
-import streamlit as st
+# Define a function to fetch the current price of an asset symbol
+def get_asset_price(symbol):
+    # Replace with your preferred API or web scraping technique
+    url = f"https://www.tradingview.com/symbol/{symbol}"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    price_element = soup.find("span", class_="price")
+    if price_element is None:
+        return None
+
+    price_text = price_element.text.strip()
+    price = float(price_text.replace(",", ""))
+
+    return price
 
 # Imposta le allocazioni di asset target
 asset_allocations = {
@@ -11,8 +23,14 @@ asset_allocations = {
     "oro": 0.075,
 }
 
-# Leggi il valore corrente di ciascun asset
-
+# Fetch the current price of each asset
+asset_prices = {}
+for symbol in asset_allocations.keys():
+    asset_price = get_asset_price(symbol)
+    if asset_price is not None:
+        asset_prices[symbol] = asset_price
+    else:
+        print(f"Failed to fetch price for asset: {symbol}")
 
 # Imposta la UI
 st.title("Portafoglio virtuale di Nancy Pelosi")
@@ -26,7 +44,10 @@ for asset, allocation in asset_allocations.items():
 st.write("Valore corrente del portafoglio:")
 current_value = 0
 for asset, allocation in asset_allocations.items():
-    current_value += asset_values[asset].iloc[0] * allocation
+    if asset in asset_prices:
+        current_value += asset_prices[asset] * allocation
+    else:
+        print(f"Skipping asset: {asset} due to missing price data")
 st.write(current_value)
 
 # Mostra le operazioni di Nancy Pelosi
@@ -37,6 +58,11 @@ for operation in operations:
 
 # Aggiorna il portafoglio
 def update_portfolio():
+    # Update the asset prices using the get_asset_price function
+    for symbol in asset_allocations.keys():
+        asset_prices[symbol] = get_asset_price(symbol)
+
+    # Aggiorna le allocazioni di asset in base alle nuove operazioni
     for operation in operations:
         asset = operation['ticker']
         amount = operation['amount']
@@ -61,5 +87,8 @@ for asset, allocation in asset_allocations.items():
 st.write("Valore corrente del portafoglio aggiornato:")
 current_value = 0
 for asset, allocation in asset_allocations.items():
-    current_value += asset_values[asset].iloc[0] * allocation
+    if asset in asset_prices:
+        current_value += asset_prices[asset] * allocation
+    else:
+        print(f"Skipping asset: {asset} due to missing price data")
 st.write(current_value)
