@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 
 # Imposta le allocazioni di asset target
- asset_allocations = {
+asset_allocations = {
     "azioni": 0.3,
     "obbligazioni_lungo_termine": 0.4,
     "obbligazioni_medio_termine": 0.15,
@@ -12,7 +12,7 @@ import streamlit as st
 }
 
 # Leggi il valore corrente di ciascun asset
- asset_values = pd.read_csv("asset_values.csv")
+asset_values = pd.read_csv("asset_values.csv")
 
 # Imposta la UI
 st.title("Portafoglio virtuale di Nancy Pelosi")
