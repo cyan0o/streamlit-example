@@ -1,4 +1,4 @@
-
+import requests
 # Define a function to fetch the current price of an asset symbol
 def get_asset_price(symbol):
     # Replace with your preferred API or web scraping technique
